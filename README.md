@@ -1,63 +1,103 @@
 # Quantity Measurement App
 
-**Branch:** `feature/UC11-VolumeMeasurement`
-**Code Link:** [https://github.com/abhays07/QuantityMeasurementApp/blob/feature/UC11-VolumeMeasurement](https://github.com/abhays07/QuantityMeasurementApp/blob/feature/UC11-VolumeMeasurement)
+**Branch:** `feature/UC13-Arithmetic-DRY`
+**Code Link:** [https://github.com/abhays07/QuantityMeasurementApp/tree/feature/UC13-Arithmetic-DRY](https://github.com/abhays07/QuantityMeasurementApp/tree/feature/UC13-Arithmetic-DRY)
 
 ---
 
-## UC11: Volume Measurement Equality, Conversion, and Addition
+## UC13: Centralized Arithmetic Logic to Enforce DRY in Quantity Operations
 
 ### Overview
 
-This use case extends the generic `Quantity<U>` implementation to support volume measurements using a new `VolumeUnit` enum implementing the `IMeasurable` interface. It enables equality comparison, unit conversion, and addition operations for volume units such as litre, millilitre, and gallon. The implementation validates the scalability of the generic architecture by integrating a new measurement category without modifying existing core classes.
+UC13 refactors the arithmetic implementation introduced in UC12 (addition, subtraction, division) to eliminate code duplication and strictly enforce the **DRY (Don’t Repeat Yourself)** principle.
+
+Instead of repeating validation, base-unit conversion, and arithmetic logic across multiple methods, this use case introduces:
+
+* A centralized validation helper
+* A core arithmetic execution helper
+* An `ArithmeticOperation` enum for clean operation dispatch
+
+The public API remains unchanged. All behaviors from UC12 are preserved while the internal implementation is significantly optimized for maintainability, readability, and scalability.
 
 ---
 
 ### Features Implemented
 
-* Added `VolumeUnit` enum implementing `IMeasurable` with litre, millilitre, and gallon support
-* Enabled generic `Quantity<U>` to handle volume equality, conversion, and addition
-* Ensured seamless integration without modifying existing generic Quantity class
-* Maintained strict type safety between volume, length, and weight categories
-* Validated architectural scalability using generic design pattern
+* Introduced private `ArithmeticOperation` enum (ADD, SUBTRACT, DIVIDE)
+* Implemented centralized validation method:
+  `validateArithmeticOperands(...)`
+* Implemented centralized base arithmetic method:
+  `performBaseArithmetic(...)`
+* Refactored `add()`, `subtract()`, and `divide()` to delegate to helper methods
+* Eliminated duplicated validation and conversion logic
+* Preserved backward compatibility (all UC12 tests pass unchanged)
+* Maintained immutability and mathematical correctness
+* Improved scalability for future operations (e.g., MULTIPLY)
 
 ---
 
 ### Preconditions
 
-* The `QuantityMeasurementApp` class is initialized
-* Volume measurements are provided using valid `VolumeUnit` enum constants
+* UC12 arithmetic operations are fully functional
+* All measurement units implement `IMeasurable`
+* Existing unit tests from UC12 pass
+* Public API signatures must remain unchanged
+* Refactoring must not modify behavior
 
 ---
 
 ### Functionality
 
-* Compares volume quantities using base unit normalization (litre)
-* Converts volume values between litre, millilitre, and gallon
-* Adds volume quantities with implicit and explicit target unit support
-* Ensures generic Quantity class handles volume without specialized implementation
-* Prevents invalid cross-category comparisons using generic type safety
+* Centralized null, category, and finiteness validation
+* Centralized base-unit conversion logic
+* Enum-based arithmetic dispatch using `DoubleBinaryOperator`
+* Unified error handling across all operations
+* Preserved implicit and explicit target unit behavior
+* Maintained rounding rules for add/subtract
+* Division continues to return dimensionless scalar (double)
 
 ---
 
-### Example
+### Internal Flow
+
+**Example:**
+
+```java
+q1.subtract(q2, FEET);
+```
+
+Execution Flow:
+
+```
+validateArithmeticOperands(q2, FEET, true)
+        ↓
+performBaseArithmetic(q2, SUBTRACT)
+        ↓
+SUBTRACT.compute(base1, base2)
+        ↓
+convertFromBaseUnit(...)
+        ↓
+return new Quantity<>(result, FEET)
+```
+
+---
+
+### Example (Behavior Unchanged from UC12)
 
 **Input:**
 
 ```bash
-new Quantity<>(1.0, VolumeUnit.LITRE).equals(new Quantity<>(1000.0, VolumeUnit.MILLILITRE))  
-new Quantity<>(1.0, VolumeUnit.LITRE).convertTo(VolumeUnit.MILLILITRE)  
-new Quantity<>(1.0, VolumeUnit.LITRE).add(new Quantity<>(1000.0, VolumeUnit.MILLILITRE), VolumeUnit.LITRE)  
-new Quantity<>(1.0, VolumeUnit.GALLON).convertTo(VolumeUnit.LITRE)  
+new Quantity<>(1.0, LengthUnit.FEET).add(new Quantity<>(12.0, LengthUnit.INCHES))  
+new Quantity<>(10.0, LengthUnit.FEET).subtract(new Quantity<>(6.0, LengthUnit.INCHES))  
+new Quantity<>(24.0, LengthUnit.INCHES).divide(new Quantity<>(2.0, LengthUnit.FEET))  
 ```
 
 **Output:**
 
 ```bash
-true  
-Quantity(1000.0, MILLILITRE)  
-Quantity(2.0, LITRE)  
-Quantity(3.78541, LITRE)  
+Quantity(2.0, FEET)  
+Quantity(9.5, FEET)  
+1.0  
 ```
 
 ---
@@ -66,10 +106,55 @@ Quantity(3.78541, LITRE)
 
 The following test scenarios are covered:
 
-* Equality comparison across litre, millilitre, and gallon units
-* Unit conversion between all supported volume units
-* Addition operations using generic Quantity class with volume units
-* Prevention of cross-category comparisons between volume, length, and weight
-* Validation of null units, invalid inputs, and floating-point precision handling
+* Delegation verification for add/subtract/divide
+* Validation consistency across all operations
+* Cross-category arithmetic prevention
+* Finiteness validation centralization
+* Division-by-zero handling
+* Enum-based operation dispatch correctness
+* Rounding consistency
+* Immutability preservation
+* Backward compatibility with UC12
+* Code duplication elimination verification
+* Performance comparison with UC12
+* Operation chaining validation
+* Helper method encapsulation (private visibility)
+
+All UC12 test cases pass without modification.
+
+---
+
+### Architectural Improvements
+
+* Enforced DRY principle
+* Single source of truth for validation logic
+* Single source of truth for base conversion logic
+* Improved separation of concerns
+* Reduced method complexity
+* Shorter, more readable public methods
+* Cleaner enum-based operation dispatch
+* Simplified future extensibility (e.g., MULTIPLY)
+
+---
+
+### Design Principles Applied
+
+* DRY Principle
+* Single Responsibility Principle
+* Open/Closed Principle
+* Encapsulation
+* Enum-based polymorphism
+* Functional Interfaces & Lambda Expressions
+* Refactoring without behavioral change
+
+---
+
+### Architectural Impact
+
+* No breaking changes
+* Public API unchanged
+* Behavior identical to UC12
+* Improved maintainability and readability
+* Scalable foundation for future arithmetic extensions
 
 ---
