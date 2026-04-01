@@ -1,5 +1,7 @@
 package com.app.quantitymeasurement.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,25 +40,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 2. Extract the token (after "Bearer ")
-        jwt = authHeader.substring(7);
-        userEmail = jwtUtil.extractUsername(jwt);
+        try {
+            // 2. Extract the token
+            jwt = authHeader.substring(7);
+            userEmail = jwtUtil.extractUsername(jwt);
 
-        // 3. If there is an email and user is not already authenticated in this session
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            // 3. Authenticate if token is valid and context is empty
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            // 4. Validate the token
-            if (!jwtUtil.isTokenExpired(jwt)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                
-                // 5. Set the user as authenticated in the Spring Security Context
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (!jwtUtil.isTokenExpired(jwt)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+            
+            // Continue the filter chain
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            // Handle Expired Token: Send clean 401 instead of crashing
+            handleException(response, "JWT token has expired", HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (SignatureException e) {
+            // Handle Invalid Signature
+            handleException(response, "Invalid JWT signature", HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (Exception e) {
+            // Handle any other JWT related errors
+            handleException(response, "Authentication failed", HttpServletResponse.SC_FORBIDDEN);
         }
-        filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Helper method to write a clean JSON error response
+     */
+    private void handleException(HttpServletResponse response, String message, int status) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        // Write standard JSON structure that your frontend can read
+        String jsonResponse = String.format("{\"message\": \"%s\", \"status\": %d}", message, status);
+        response.getWriter().write(jsonResponse);
     }
 }

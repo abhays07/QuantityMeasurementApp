@@ -3,8 +3,6 @@ package com.app.quantitymeasurement.config;
 import com.app.quantitymeasurement.model.User;
 import com.app.quantitymeasurement.repository.UserRepository;
 import com.app.quantitymeasurement.security.*;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +12,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -26,16 +22,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    @Autowired
-    private UserDetailsService userDetailsService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -51,9 +42,16 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            // MUST be Stateless for JWT, but OAuth2Login handles its own temporary session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
+                // Public Endpoints (Calculation for Guests)
                 .requestMatchers("/auth/**", "/oauth2/**", "/login/**", "/h2-console/**").permitAll()
+                .requestMatchers("/api/v1/quantities/add", "/api/v1/quantities/subtract", 
+                                 "/api/v1/quantities/compare", "/api/v1/quantities/convert/**").permitAll()
+                
+                // Private Endpoints (History)
+                .requestMatchers("/api/v1/quantities/history").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
@@ -72,22 +70,19 @@ public class SecurityConfig {
             String email = oAuth2User.getAttribute("email");
             String name = oAuth2User.getAttribute("name");
 
-            // Find or Create user
             User user = userRepository.findByEmail(email).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setEmail(email);
                 newUser.setName(name != null ? name : "Google User");
                 newUser.setRole("ROLE_USER");
                 newUser.setProvider("GOOGLE");
-                newUser.setPassword(""); // OAuth users don't need a local password
+                newUser.setPassword(""); 
                 return userRepository.save(newUser);
             });
 
-            // Generate JWT
             String token = jwtUtil.generateToken(user);
-
-            // REDIRECT: This is the fix. It sends the token to your React Frontend
-            response.sendRedirect("http://localhost:5173/dashboard?token=" + token);
+            // Redirection to frontend with token
+            response.sendRedirect("http://localhost:5173/oauth-callback?token=" + token);
         };
     }
 
@@ -106,7 +101,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

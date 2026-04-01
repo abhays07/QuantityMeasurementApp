@@ -1,6 +1,9 @@
 package com.app.quantitymeasurement.service;
 
+import java.util.List;
+
 import com.app.quantitymeasurement.dto.QuantityDTO;
+import com.app.quantitymeasurement.model.QuantityMeasurementEntity;
 
 public interface IQuantityMeasurementService {
 
@@ -13,5 +16,9 @@ public interface IQuantityMeasurementService {
     QuantityDTO subtract(QuantityDTO q1, QuantityDTO q2);
 
     double divide(QuantityDTO q1, QuantityDTO q2);
+
+	List<QuantityMeasurementEntity> getAllMeasurements();
+    
+    
 
 }
