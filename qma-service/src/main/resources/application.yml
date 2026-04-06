@@ -1,0 +1,70 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: qma-service
+
+  config:
+    import: optional:file:../../application-secrets.yml
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/qma_db?createDatabaseIfNotExist=true
+    username: root
+    password: "05052005"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${redis.password}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+
+jwt:
+  secretkey: ${jwt.secretkey}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:9411/api/v2/spans"
+
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics"
+
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      redisService:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 3
