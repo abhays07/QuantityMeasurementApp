@@ -10,8 +10,9 @@ spring:
     import: optional:file:../../application-secrets.yml
 
   datasource:
-    url: jdbc:mysql://localhost:3306/auth_db?createDatabaseIfNotExist=true
-    username: root
+    # UPDATED: Pointing to your AWS RDS Endpoint instead of localhost
+    url: jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/auth_db?createDatabaseIfNotExist=true
+    username: admin
     password: "05052005"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -25,6 +26,7 @@ spring:
       client:
         registration:
           google:
+            # Using {baseUrl} allows the service to detect the Gateway's address automatically
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
 
 jwt:
@@ -33,7 +35,8 @@ jwt:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      # UPDATED: Containers must use the service name defined in docker-compose.yml to find Eureka
+      defaultZone: http://eureka-server:8761/eureka/
 
 management:
   tracing:
@@ -42,7 +45,8 @@ management:
 
   zipkin:
     tracing:
-      endpoint: "http://localhost:9411/api/v2/spans"
+      # UPDATED: If you decide to use Zipkin, point to the container name
+      endpoint: "http://zipkin:9411/api/v2/spans"
 
   endpoints:
     web:
