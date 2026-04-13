@@ -27,6 +27,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/auth_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
+      # Matches the ${JWT_SECRETKEY} in your updated application.yml
       - JWT_SECRETKEY=mySecretKeyForJWTAuthentication1234567890
     depends_on:
       - eureka-server
@@ -39,6 +40,12 @@ services:
     image: abhays2004/qma-service:latest
     ports:
       - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=05052005
+      # Matches the ${JWT_SECRETKEY} in your updated application.yml
+      - JWT_SECRETKEY=mySecretKeyForJWTAuthentication1234567890
     depends_on:
       - eureka-server
     deploy:
