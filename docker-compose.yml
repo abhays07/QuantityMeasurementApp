@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    image: abhays2004/qma-eureka:latest
+    ports:
+      - "8761:8761"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  api-gateway:
+    image: abhays2004/qma-gateway:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    deploy:
+      resources:
+        limits:
+          memory: 160M
+
+  auth-service:
+    image: abhays2004/qma-auth:latest
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=05052005
+      - JWT_SECRETKEY=mySecretKeyForJWTAuthentication1234567890
+    depends_on:
+      - eureka-server
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
+  qma-service:
+    image: abhays2004/qma-service:latest
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka-server
+    deploy:
+      resources:
+        limits:
+          memory: 160M
+
+  frontend:
+    image: abhays2004/qma-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    deploy:
+      resources:
+        limits:
+          memory: 128M
