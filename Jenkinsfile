@@ -2,28 +2,37 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Repositories') {
             steps {
-                // This pulls your latest code from GitHub onto the EC2
-                git branch: 'feature/UC21-MicroservicesArchitecture', 
-                    url: 'https://github.com/abhays07/QuantityMeasurementApp.git'
+                script {
+                    // 1. Pull Backend code into a folder named 'backend'
+                    dir('backend') {
+                        git branch: 'feature/UC21-MicroservicesArchitecture', 
+                            url: 'https://github.com/abhays07/QuantityMeasurementApp.git'
+                    }
+                    // 2. Pull Frontend code into a folder named 'frontend'
+                    dir('frontend') {
+                        git branch: 'feature/frontend-microservices', 
+                            url: 'https://github.com/abhays07/QuantityMeasurementApp-Frontend.git'
+                    }
+                }
             }
         }
 
         stage('Deploy with Docker') {
             steps {
                 script {
-                    // We use the 'docker-compose' command we just installed manually
-                    // 'down' stops old versions, 'up -d' starts new ones in background
-                    sh 'docker-compose down || true'
-                    sh 'docker-compose up -d'
+                    // Navigate to the backend folder where docker-compose.yml lives
+                    dir('backend') {
+                        sh 'docker-compose down || true'
+                        sh 'docker-compose up -d'
+                    }
                 }
             }
         }
 
         stage('Verify') {
             steps {
-                // This lets us see the running containers in the Jenkins log
                 sh 'docker ps'
             }
         }

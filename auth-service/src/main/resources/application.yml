@@ -25,7 +25,7 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
 
 jwt:
   secretkey: ${jwt.secretkey}
