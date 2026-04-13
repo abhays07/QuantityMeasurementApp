@@ -5,17 +5,13 @@ server:
 spring:
   application:
     name: auth-service
-
   config:
     import: optional:file:../../application-secrets.yml
-
   datasource:
-    # UPDATED: Using AWS RDS Endpoint
     url: jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/auth_db?createDatabaseIfNotExist=true
     username: admin
     password: "05052005"
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,17 +24,19 @@ spring:
       client:
         registration:
           google:
+            # FIXED: Matches uppercase names in your EC2 .env file
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
 
 jwt:
-  secretkey: ${jwt.secretkey}
+  # FIXED: Matches JWT_SECRETKEY in your EC2 .env file
+  secretkey: ${JWT_SECRETKEY}
 
 eureka:
   client:
     service-url:
-      # UPDATED: Using Docker service name
       defaultZone: http://eureka-server:8761/eureka/
-
 management:
   tracing:
     sampling:
