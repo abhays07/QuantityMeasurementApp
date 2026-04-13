@@ -24,8 +24,8 @@ pipeline {
                 script {
                     // Navigate to the backend folder where docker-compose.yml lives
                     dir('backend') {
-                        sh 'docker-compose down || true'
-                        sh 'docker-compose up -d'
+                        sh 'docker-compose -p qma down || true'
+                        sh 'docker-compose -p qma up -d'
                     }
                 }
             }
