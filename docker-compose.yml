@@ -27,8 +27,10 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/auth_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
-      # Matches the ${JWT_SECRETKEY} in your updated application.yml
-      - JWT_SECRETKEY=mySecretKeyForJWTAuthentication1234567890
+      # Docker will pull these values from the local .env file on your EC2
+      - GOOGLE_CLIENT_ID=$${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=$${GOOGLE_CLIENT_SECRET}
+      - JWT_SECRETKEY=$${JWT_SECRETKEY}
     depends_on:
       - eureka-server
     deploy:
@@ -44,8 +46,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
-      # Matches the ${JWT_SECRETKEY} in your updated application.yml
-      - JWT_SECRETKEY=mySecretKeyForJWTAuthentication1234567890
+      # Docker will pull this value from the local .env file on your EC2
+      - JWT_SECRETKEY=$${JWT_SECRETKEY}
     depends_on:
       - eureka-server
     deploy:
