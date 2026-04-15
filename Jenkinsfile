@@ -1,16 +1,21 @@
 pipeline {
     agent any
 
+    environment {
+        // These variables pull the actual secrets from Jenkins securely
+        GOOGLE_CLIENT_ID     = credentials('GOOGLE_CLIENT_ID')
+        GOOGLE_CLIENT_SECRET = credentials('GOOGLE_CLIENT_SECRET')
+        JWT_SECRETKEY        = credentials('JWT_SECRETKEY')
+    }
+
     stages {
         stage('Checkout Repositories') {
             steps {
                 script {
-                    // 1. Pull Backend code into a folder named 'backend'
                     dir('backend') {
                         git branch: 'feature/UC21-MicroservicesArchitecture', 
                             url: 'https://github.com/abhays07/QuantityMeasurementApp.git'
                     }
-                    // 2. Pull Frontend code into a folder named 'frontend'
                     dir('frontend') {
                         git branch: 'feature/frontend-microservices', 
                             url: 'https://github.com/abhays07/QuantityMeasurementApp-Frontend.git'
@@ -22,8 +27,8 @@ pipeline {
         stage('Deploy with Docker') {
             steps {
                 script {
-                    // Navigate to the backend folder where docker-compose.yml lives
                     dir('backend') {
+                        // The environment variables above are now automatically passed to docker-compose
                         sh 'docker-compose -p qma down || true'
                         sh 'docker-compose -p qma up -d'
                     }
@@ -33,6 +38,8 @@ pipeline {
 
         stage('Verify') {
             steps {
+                // Give services 10 seconds to start before verifying
+                sleep time: 10, unit: 'SECONDS'
                 sh 'docker ps'
             }
         }

@@ -27,7 +27,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/auth_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
-      # FIXED: Single $ correctly reads from your local .env file
+      # Values are injected by the Jenkins 'environment' block
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - JWT_SECRETKEY=${JWT_SECRETKEY}
@@ -46,7 +46,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
-      # FIXED: Single $ correctly reads from your local .env file
+      # Value is injected by the Jenkins 'environment' block
       - JWT_SECRETKEY=${JWT_SECRETKEY}
     depends_on:
       - eureka-server
