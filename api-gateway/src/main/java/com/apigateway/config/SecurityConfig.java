@@ -37,7 +37,8 @@ public class SecurityConfig {
             "http://localhost:5173", 
             "http://localhost:5174", 
             "http://localhost:3000",
-            "http://43.205.228.140.nip.io"
+            "http://43.205.228.140.nip.io",
+            "http://43.205.228.140"
         ));
         
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
