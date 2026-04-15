@@ -36,7 +36,8 @@ public class SecurityConfig {
         corsConfig.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173", 
             "http://localhost:5174", 
-            "http://localhost:3000"
+            "http://localhost:3000",
+            "http://43.205.228.140.nip.io"
         ));
         
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));

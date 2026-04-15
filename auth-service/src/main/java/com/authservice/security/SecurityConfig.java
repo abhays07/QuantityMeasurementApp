@@ -75,7 +75,7 @@ public class SecurityConfig {
 
             String token = jwtUtil.generateToken(user);
             // Redirect back to frontend
-            response.sendRedirect("http://13.232.220.177.nip.io/oauth-callback?token=" + token);
+            response.sendRedirect("http://43.205.228.140.nip.io/oauth-callback?token=" + token);
         };
     }
 
