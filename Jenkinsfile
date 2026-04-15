@@ -28,14 +28,18 @@ pipeline {
             steps {
                 script {
                     dir('backend') {
-                        // The environment variables above are now automatically passed to docker-compose
+                        // This step physically creates the .env file Docker is looking for
+                        sh """
+                            echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" > .env
+                            echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> .env
+                            echo "JWT_SECRETKEY=${JWT_SECRETKEY}" >> .env
+                        """
                         sh 'docker-compose -p qma down || true'
                         sh 'docker-compose -p qma up -d'
                     }
                 }
             }
         }
-
         stage('Verify') {
             steps {
                 // Give services 10 seconds to start before verifying
