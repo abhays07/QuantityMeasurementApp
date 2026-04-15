@@ -33,13 +33,14 @@ public class SecurityConfig {
         CorsConfiguration corsConfig = new CorsConfiguration();
         
         // Allowed Origins (Added 5173 for Vite)
-        corsConfig.setAllowedOrigins(Arrays.asList(
+       corsConfig.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173", 
-            "http://localhost:5174", 
             "http://localhost:3000",
             "http://43.205.228.140.nip.io",
-            "http://43.205.228.140"
-        ));
+            "http://43.205.228.140.nip.io:8085", 
+            "http://43.205.228.140",             
+            "http://43.205.228.140:8085"         
+            ));
         
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         
