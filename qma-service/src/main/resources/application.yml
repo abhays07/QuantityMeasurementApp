@@ -9,7 +9,6 @@ spring:
     import: optional:file:../../application-secrets.yml
 
   datasource:
-    # UPDATED: Using AWS RDS Endpoint
     url: jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
     username: admin
     password: "05052005"
@@ -25,10 +24,11 @@ spring:
 
   data:
     redis:
-      # If you add Redis to docker-compose, change this to the service name 'redis'
-      host: localhost 
+      # CHANGED: Use the service name defined in docker-compose, not localhost
+      host: redis 
       port: 6379
-      password: ${redis.password}
+      # CHANGED: Use uppercase placeholder to match Jenkins secrets
+      password: ${REDIS_PASSWORD}
 
   cache:
     type: redis
@@ -36,12 +36,12 @@ spring:
       time-to-live: 600000
 
 jwt:
-  secretkey: ${jwt.secretkey}
+  # CRITICAL: Changed to uppercase to match Jenkins GOOGLE_CLIENT_ID / JWT_SECRETKEY logic
+  secretkey: ${JWT_SECRETKEY}
 
 eureka:
   client:
     service-url:
-      # UPDATED: Using Docker service name
       defaultZone: http://eureka-server:8761/eureka/
 
 management:
