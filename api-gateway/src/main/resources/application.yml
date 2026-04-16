@@ -6,7 +6,14 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      globalcors:
+        httpclient:
+          connect-timeout: 10000
+          response-timeout: 10s
+          discovery:
+          locator:
+          enabled: true
+          lower-case-service-id: true
+          globalcors:
         cors-configurations:
           "[/**]":
             allowedOrigins:
@@ -17,26 +24,26 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
-      routes:
-        - id: auth-service-route
+            routes:
+             - id: auth-service-route
           uri: lb://AUTH-SERVICE
           predicates:
             - Path=/auth/**, /oauth2/**, /login/oauth2/code/**
-        - id: qma-service-route
-          uri: lb://QMA-SERVICE
-          predicates:
+            - id: qma-service-route
+              uri: lb://QMA-SERVICE
+              predicates:
             - Path=/api/v1/quantities/**
-        - id: google-auth-init-route
-          uri: lb://AUTH-SERVICE
-          predicates:
-            - Path=/oauth2/**
-        - id: google-callback-route
-          uri: lb://AUTH-SERVICE
-          predicates:
+            - id: google-auth-init-route
+              uri: lb://AUTH-SERVICE
+              predicates:
+              - Path=/oauth2/**
+              - id: google-callback-route
+                uri: lb://AUTH-SERVICE
+                predicates:
             - Path=/login/oauth2/code/**
 eureka:
   client:
-      registry-fetch-interval-seconds: 1
+      registry-fetch-interval-seconds: 2
       service-url:
          defaultZone: http://eureka-server:8761/eureka/
 management:

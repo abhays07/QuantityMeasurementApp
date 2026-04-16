@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 // FIXED: name must be "AUTH-SERVICE" (Uppercase) to match Eureka registration
-@FeignClient(name = "AUTH-SERVICE")
+@FeignClient(name = "AUTH-SERVICE", url = "${auth-service.url}")
 public interface AuthServiceClient {
 
     @GetMapping("/auth/validate")

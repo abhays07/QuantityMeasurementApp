@@ -1,70 +1,72 @@
 server:
-  port: 8081
+    port: 8081
 
 spring:
-  application:
-    name: qma-service
+    application:
+        name: qma-service
 
-  config:
-    import: optional:file:../../application-secrets.yml
+    config:
+        import: optional:file:../../application-secrets.yml
 
-  datasource:
-    url: jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
-    username: admin
-    password: "05052005"
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    datasource:
+        url: jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
+        username: admin
+        password: "05052005"
+        driver-class-name: com.mysql.cj.jdbc.Driver
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.MySQLDialect
 
-  data:
-    redis:
-      # CHANGED: Use the service name defined in docker-compose, not localhost
-      host: redis 
-      port: 6379
-      # CHANGED: Use uppercase placeholder to match Jenkins secrets
-      password: ${REDIS_PASSWORD}
+    data:
+        redis:
+            # CHANGED: Use the service name defined in docker-compose, not localhost
+            host: redis
+            port: 6379
+            # CHANGED: Use uppercase placeholder to match Jenkins secrets
+            password: ${REDIS_PASSWORD}
 
-  cache:
-    type: redis
-    redis:
-      time-to-live: 600000
+    cache:
+        type: redis
+        redis:
+            time-to-live: 600000
 
 jwt:
-  # CRITICAL: Changed to uppercase to match Jenkins GOOGLE_CLIENT_ID / JWT_SECRETKEY logic
-  secretkey: ${JWT_SECRETKEY}
+    # CRITICAL: Changed to uppercase to match Jenkins GOOGLE_CLIENT_ID / JWT_SECRETKEY logic
+    secretkey: ${JWT_SECRETKEY}
 
 eureka:
-  client:
-    service-url:
-      defaultZone: http://eureka-server:8761/eureka/
+    client:
+        service-url:
+            defaultZone: http://eureka-server:8761/eureka/
 
 management:
-  tracing:
-    sampling:
-      probability: 1.0
-  zipkin:
     tracing:
-      endpoint: "http://zipkin:9411/api/v2/spans"
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,metrics"
-  endpoint:
-    health:
-      show-details: always
+        sampling:
+            probability: 1.0
+    zipkin:
+        tracing:
+            endpoint: "http://zipkin:9411/api/v2/spans"
+    endpoints:
+        web:
+            exposure:
+                include: "health,info,metrics"
+    endpoint:
+        health:
+            show-details: always
 
 resilience4j:
-  circuitbreaker:
-    instances:
-      redisService:
-        registerHealthIndicator: true
-        slidingWindowSize: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10000ms
-        permittedNumberOfCallsInHalfOpenState: 3
+    circuitbreaker:
+        instances:
+            redisService:
+                registerHealthIndicator: true
+                slidingWindowSize: 5
+                failureRateThreshold: 50
+                waitDurationInOpenState: 10000ms
+                permittedNumberOfCallsInHalfOpenState: 3
+auth-service:
+    url: http://api-gateway:8080
