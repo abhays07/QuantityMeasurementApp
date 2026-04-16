@@ -27,7 +27,7 @@ spring:
             # FIXED: Matches uppercase names in your EC2 .env file
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            redirect-uri: "http://43.205.228.140.nip.io:8085/login/oauth2/code/google"
 
 jwt:
   # FIXED: Matches JWT_SECRETKEY in your EC2 .env file
