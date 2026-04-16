@@ -36,8 +36,9 @@ spring:
             - Path=/login/oauth2/code/**
 eureka:
   client:
-    service-url:
-      defaultZone: http://eureka-server:8761/eureka/
+      registry-fetch-interval-seconds: 1
+      service-url:
+         defaultZone: http://eureka-server:8761/eureka/
 management:
   tracing:
     sampling:
