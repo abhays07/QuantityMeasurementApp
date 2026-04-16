@@ -35,7 +35,7 @@ public class AuthController {
         
         try {
             // Use your existing JwtUtil to check if the token is still valid
-            String email = jwtUtil.extractEmail(token);
+        	jwtUtil.extractUsername(token);
             boolean isValid = !jwtUtil.isTokenExpired(token);
             return ResponseEntity.ok(isValid);
         } catch (Exception e) {
