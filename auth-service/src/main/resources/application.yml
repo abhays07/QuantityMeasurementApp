@@ -24,19 +24,22 @@ spring:
       client:
         registration:
           google:
-            # FIXED: Matches uppercase names in your EC2 .env file
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            # FIXED: Explicitly set to public IP Gateway to avoid Docker ID mismatch
             redirect-uri: "http://43.205.228.140.nip.io:8085/login/oauth2/code/google"
+            scope:
+              - email
+              - profile
 
 jwt:
-  # FIXED: Matches JWT_SECRETKEY in your EC2 .env file
   secretkey: ${JWT_SECRETKEY}
 
 eureka:
   client:
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
+
 management:
   tracing:
     sampling:

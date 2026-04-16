@@ -1,20 +1,12 @@
 package com.authservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestHeader;
-
 import com.authservice.dto.*;
 import com.authservice.model.*;
 import com.authservice.security.*;
 import com.authservice.service.*;
-
 import jakarta.validation.Valid;
 
 @RestController
@@ -34,9 +26,9 @@ public class AuthController {
         }
         
         try {
-            // Use your existing JwtUtil to check if the token is still valid
-        	jwtUtil.extractUsername(token);
-            boolean isValid = !jwtUtil.isTokenExpired(token);
+            // FIXED: Ensure extracted user data is valid and token is not expired
+            String email = jwtUtil.extractEmail(token); 
+            boolean isValid = (email != null && !jwtUtil.isTokenExpired(token));
             return ResponseEntity.ok(isValid);
         } catch (Exception e) {
             return ResponseEntity.ok(false);
@@ -52,8 +44,6 @@ public class AuthController {
 	public AuthResponse login(@RequestBody AuthRequest request) {
 		User user = service.login(request.getEmail(),request.getPassword());
 		String token = jwtUtil.generateToken(user);
-		
 		return new AuthResponse(token);
-		
 	}
 }

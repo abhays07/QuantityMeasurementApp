@@ -29,30 +29,28 @@ public class SecurityConfig {
     }
 
     @Bean
-public CorsWebFilter corsWebFilter() {
-    CorsConfiguration corsConfig = new CorsConfiguration();
+    public CorsWebFilter corsWebFilter() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
 
-    corsConfig.setAllowedOrigins(List.of(
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://43.205.228.140.nip.io",
-        "http://43.205.228.140.nip.io:8085",
-        "http://43.205.228.140",
-        "http://43.205.228.140:8085"
-    ));
+        // FIXED: Comprehensive list of allowed production and local origins
+        corsConfig.setAllowedOrigins(List.of(
+            "http://43.205.228.140.nip.io",
+            "http://43.205.228.140.nip.io:8085",
+            "http://43.205.228.140",
+            "http://43.205.228.140:8085",
+            "http://localhost:5173",
+            "http://localhost:3000"
+        ));
 
-    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        corsConfig.setExposedHeaders(List.of("Authorization"));
+        corsConfig.setAllowCredentials(true);
+        corsConfig.setMaxAge(3600L);
 
-    // FIXED
-    corsConfig.setAllowedHeaders(List.of("*"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
 
-    corsConfig.setExposedHeaders(List.of("Authorization"));
-    corsConfig.setAllowCredentials(true);
-    corsConfig.setMaxAge(3600L);
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", corsConfig);
-
-    return new CorsWebFilter(source);
-}
+        return new CorsWebFilter(source);
+    }
 }
