@@ -6,7 +6,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 400M
 
   api-gateway:
     image: abhays2004/qma-gateway:latest
@@ -17,7 +17,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 160M
+          memory: 700M
 
   auth-service:
     image: abhays2004/qma-auth:latest
@@ -36,7 +36,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 192M
+          memory: 1G
 
   qma-service:
     image: abhays2004/qma-service:latest
@@ -53,7 +53,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 160M
+          memory: 1G
 
   frontend:
     image: abhays2004/qma-frontend:latest
@@ -64,4 +64,4 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 200M
