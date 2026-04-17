@@ -18,106 +18,122 @@ import com.qmaservice.repository.*;
 @Service
 public class QuantityMeasurementServiceImpl implements IQuantityMeasurementService {
 
-    private final QuantityMeasurementRepository repository;
+	private final QuantityMeasurementRepository repository;
 
-    @Autowired
-    public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository) {
-        this.repository = repository;
-    }
+	@Autowired
+	public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository) {
+		this.repository = repository;
+	}
 
-    public Long getAuthenticatedUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // BYPASS: Handle anonymous or missing auth gracefully to prevent 503
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return 1L; // Fallback to a default ID for the submission
-        }
-        try {
-            return Long.parseLong(auth.getName());
-        } catch (NumberFormatException e) {
-            return 1L; // Fallback
-        }
-    }
+	/**
+	 * SECURITY: Extracts numeric User ID from JWT subject.
+	 */
+	public Long getAuthenticatedUserId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+			return null;
+		}
+		try {
+			// This will now receive "1", "2", etc. from the updated JwtUtil
+			return Long.parseLong(auth.getName());
+		} catch (NumberFormatException e) {
+			System.err.println("LOGICAL ERROR: Token subject is not a number: " + auth.getName());
+			return null;
+		}
+	}
 
-    private void saveToHistory(Long userId, String op, String op1, String op2, String res) {
-        if (userId != null) {
-            QuantityMeasurementEntity entity = new QuantityMeasurementEntity(userId, op, op1, op2, res);
-            repository.save(entity);
-        }
-    }
+	/**
+	 * PERSISTENCE: Saves operation to MySQL. 
+	 * Now includes debug logs to verify the fix.
+	 */
+	private void saveToHistory(Long userId, String op, String op1, String op2, String res) {
+		System.out.println("DEBUG: Attempting to save for User ID: " + userId);
+		
+		if (userId != null) {
+			QuantityMeasurementEntity entity = new QuantityMeasurementEntity(userId, op, op1, op2, res);
+			QuantityMeasurementEntity saved = repository.save(entity);
+			System.out.println("SUCCESS: Operation saved to DB with ID: " + saved.getId());
+		} else {
+			System.err.println("FAILED: userId is NULL. Record not saved.");
+		}
+	}
 
-    private Quantity<?> createQuantity(QuantityDTO dto) {
-        String unitStr = dto.getUnit().toUpperCase();
-        IMeasurable unit;
-        if (isUnitOf(LengthUnit.class, unitStr)) unit = LengthUnit.valueOf(unitStr);
-        else if (isUnitOf(WeightUnit.class, unitStr)) unit = WeightUnit.valueOf(unitStr);
-        else if (isUnitOf(VolumeUnit.class, unitStr)) unit = VolumeUnit.valueOf(unitStr);
-        else if (isUnitOf(TemperatureUnit.class, unitStr)) unit = TemperatureUnit.valueOf(unitStr);
-        else throw new IllegalArgumentException("Unsupported Unit: " + dto.getUnit());
-        return new Quantity<>(dto.getValue(), unit);
-    }
+	private Quantity<?> createQuantity(QuantityDTO dto) {
+		String unitStr = dto.getUnit().toUpperCase();
+		IMeasurable unit;
+		if (isUnitOf(LengthUnit.class, unitStr)) unit = LengthUnit.valueOf(unitStr);
+		else if (isUnitOf(WeightUnit.class, unitStr)) unit = WeightUnit.valueOf(unitStr);
+		else if (isUnitOf(VolumeUnit.class, unitStr)) unit = VolumeUnit.valueOf(unitStr);
+		else if (isUnitOf(TemperatureUnit.class, unitStr)) unit = TemperatureUnit.valueOf(unitStr);
+		else throw new IllegalArgumentException("Unsupported Unit: " + dto.getUnit());
+		return new Quantity<>(dto.getValue(), unit);
+	}
 
-    private boolean isUnitOf(Class<? extends Enum<?>> enumClass, String value) {
-        for (Enum<?> e : enumClass.getEnumConstants()) {
-            if (e.name().equals(value)) return true;
-        }
-        return false;
-    }
+	private boolean isUnitOf(Class<? extends Enum<?>> enumClass, String value) {
+		for (Enum<?> e : enumClass.getEnumConstants()) {
+			if (e.name().equals(value)) return true;
+		}
+		return false;
+	}
 
-    @Override
-    public boolean compare(QuantityDTO q1, QuantityDTO q2) {
-        return createQuantity(q1).equals(createQuantity(q2));
-    }
+	@Override
+	public boolean compare(QuantityDTO q1, QuantityDTO q2) {
+		return createQuantity(q1).equals(createQuantity(q2));
+	}
 
-    @Override
-    @Cacheable(value = "calculations", key = "{#input.value, #input.unit, #targetUnit}")
-    public QuantityDTO convert(QuantityDTO input, String targetUnit) {
-        Quantity<?> quantity = createQuantity(input);
-        Quantity result = ((Quantity) quantity).convertTo(createQuantity(new QuantityDTO(0, targetUnit)).getUnit());
-        return new QuantityDTO(result.getValue(), result.getUnit().toString());
-    }
+	@Override
+	@Cacheable(value = "calculations", key = "{#input.value, #input.unit, #targetUnit}")
+	public QuantityDTO convert(QuantityDTO input, String targetUnit) {
+		Quantity<?> quantity = createQuantity(input);
+		Quantity result = ((Quantity) quantity).convertTo(createQuantity(new QuantityDTO(0, targetUnit)).getUnit());
+		return new QuantityDTO(result.getValue(), result.getUnit().toString());
+	}
 
-    @Override
-    @CacheEvict(value = "history", allEntries = true)
-    public QuantityDTO add(QuantityDTO q1, QuantityDTO q2) {
-        Quantity quantity1 = createQuantity(q1);
-        Quantity quantity2 = createQuantity(q2);
-        Quantity result = (Quantity) ((Quantity) quantity1).add((Quantity) quantity2);
-        // Save history without blocking the main calculation
-        saveToHistory(getAuthenticatedUserId(), "ADD", quantity1.toString(), quantity2.toString(), result.toString());
-        return new QuantityDTO(result.getValue(), result.getUnit().toString());
-    }
+	@Override
+	@CacheEvict(value = "history", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().name")
+	public QuantityDTO add(QuantityDTO q1, QuantityDTO q2) {
+		Quantity quantity1 = createQuantity(q1);
+		Quantity quantity2 = createQuantity(q2);
+		Quantity result = (Quantity) ((Quantity) quantity1).add((Quantity) quantity2);
+		saveToHistory(getAuthenticatedUserId(), "ADD", quantity1.toString(), quantity2.toString(), result.toString());
+		return new QuantityDTO(result.getValue(), result.getUnit().toString());
+	}
 
-    @Override
-    @CacheEvict(value = "history", allEntries = true)
-    public QuantityDTO subtract(QuantityDTO q1, QuantityDTO q2) {
-        Quantity quantity1 = createQuantity(q1);
-        Quantity quantity2 = createQuantity(q2);
-        Quantity result = (Quantity) ((Quantity) quantity1).subtract((Quantity) quantity2);
-        saveToHistory(getAuthenticatedUserId(), "SUBTRACT", quantity1.toString(), quantity2.toString(), result.toString());
-        return new QuantityDTO(result.getValue(), result.getUnit().toString());
-    }
+	@Override
+	@CacheEvict(value = "history", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().name")
+	public QuantityDTO subtract(QuantityDTO q1, QuantityDTO q2) {
+		Quantity quantity1 = createQuantity(q1);
+		Quantity quantity2 = createQuantity(q2);
+		Quantity result = (Quantity) ((Quantity) quantity1).subtract((Quantity) quantity2);
+		saveToHistory(getAuthenticatedUserId(), "SUBTRACT", quantity1.toString(), quantity2.toString(), result.toString());
+		return new QuantityDTO(result.getValue(), result.getUnit().toString());
+	}
 
-    @Override
-    public double divide(QuantityDTO q1, QuantityDTO q2) {
-        Quantity quantity1 = createQuantity(q1);
-        Quantity quantity2 = createQuantity(q2);
-        double result = (double) ((Quantity) quantity1).divide((Quantity) quantity2);
-        saveToHistory(getAuthenticatedUserId(), "DIVIDE", quantity1.toString(), quantity2.toString(), String.valueOf(result));
-        return result;
-    }
+	@Override
+	@CacheEvict(value = "history", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().name")
+	public double divide(QuantityDTO q1, QuantityDTO q2) {
+		Quantity quantity1 = createQuantity(q1);
+		Quantity quantity2 = createQuantity(q2);
+		double result = (double) ((Quantity) quantity1).divide((Quantity) quantity2);
+		saveToHistory(getAuthenticatedUserId(), "DIVIDE", quantity1.toString(), quantity2.toString(), String.valueOf(result));
+		return result;
+	}
 
-    @Override
-    @CircuitBreaker(name = "redisService", fallbackMethod = "fallbackGetAllMeasurements")
-    public List<QuantityMeasurementEntity> getAllMeasurements() {
-        return fetchHistoryFromDb();
-    }
+	@Override
+	@CircuitBreaker(name = "redisService", fallbackMethod = "fallbackGetAllMeasurements")
+	@Cacheable(value = "history", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().name")
+	public List<QuantityMeasurementEntity> getAllMeasurements() {
+		return fetchHistoryFromDb();
+	}
 
-    public List<QuantityMeasurementEntity> fallbackGetAllMeasurements(Throwable t) {
-        return fetchHistoryFromDb();
-    }
+	public List<QuantityMeasurementEntity> fallbackGetAllMeasurements(Throwable t) {
+		System.err.println("--- CIRCUIT BREAKER: REDIS DOWN. FETCHING FROM DB ---");
+		return fetchHistoryFromDb();
+	}
 
-    private List<QuantityMeasurementEntity> fetchHistoryFromDb() {
-        Long userId = getAuthenticatedUserId();
-        return repository.findByUserIdOrderByCreatedAtDesc(userId);
-    }
+	private List<QuantityMeasurementEntity> fetchHistoryFromDb() {
+		Long userId = getAuthenticatedUserId();
+		if (userId == null) return new ArrayList<>();
+		return repository.findByUserIdOrderByCreatedAtDesc(userId);
+	}
 }
