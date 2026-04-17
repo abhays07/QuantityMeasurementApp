@@ -1,7 +1,6 @@
 package com.qmaservice.controller;
 
 import com.qmaservice.model.*;
-
 import com.qmaservice.dto.*;
 import com.qmaservice.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,33 +16,33 @@ public class QuantityMeasurementController {
     private IQuantityMeasurementService service;
 
     @PostMapping("/compare")
-    public boolean compare(@RequestBody QuantityInputDTO input) {
-        return service.compare(input.getThisQuantityDTO(), input.getThatQuantityDTO());
+    public ResponseEntity<Boolean> compare(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.compare(input.getThisQuantityDTO(), input.getThatQuantityDTO()));
     }
 
     @PostMapping("/convert/{targetUnit}")
-    public QuantityDTO convert(@RequestBody QuantityDTO input, @PathVariable String targetUnit) {
-        return service.convert(input, targetUnit);
+    public ResponseEntity<QuantityDTO> convert(@RequestBody QuantityDTO input, @PathVariable String targetUnit) {
+        return ResponseEntity.ok(service.convert(input, targetUnit));
     }
 
     @PostMapping("/add")
-    public QuantityDTO add(@RequestBody QuantityInputDTO input) {
-        return service.add(input.getThisQuantityDTO(), input.getThatQuantityDTO());
+    public ResponseEntity<QuantityDTO> add(@RequestBody QuantityInputDTO input) {
+        // BYPASS: Direct call to service logic to avoid 503 timeouts
+        return ResponseEntity.ok(service.add(input.getThisQuantityDTO(), input.getThatQuantityDTO()));
     }
 
     @PostMapping("/subtract")
-    public QuantityDTO subtract(@RequestBody QuantityInputDTO input) {
-        return service.subtract(input.getThisQuantityDTO(), input.getThatQuantityDTO());
+    public ResponseEntity<QuantityDTO> subtract(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.subtract(input.getThisQuantityDTO(), input.getThatQuantityDTO()));
     }
 
     @PostMapping("/divide")
-    public double divide(@RequestBody QuantityInputDTO input) {
-        return service.divide(input.getThisQuantityDTO(), input.getThatQuantityDTO());
+    public ResponseEntity<Double> divide(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.divide(input.getThisQuantityDTO(), input.getThatQuantityDTO()));
     }
     
     @GetMapping("/history")
     public ResponseEntity<List<QuantityMeasurementEntity>> getHistory() {
-        List<QuantityMeasurementEntity> history = service.getAllMeasurements();
-        return ResponseEntity.ok(history);
+        return ResponseEntity.ok(service.getAllMeasurements());
     }
 }
