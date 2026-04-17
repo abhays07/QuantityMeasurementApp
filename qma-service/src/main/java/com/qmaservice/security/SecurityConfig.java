@@ -28,6 +28,7 @@ public class SecurityConfig {
 						// Public paths
 						.requestMatchers("/actuator/**").permitAll()
 						
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 						// TEMPORARY: Allow all quantity paths to debug the 403 issue
 						// This includes add, subtract, convert, etc.
 						.requestMatchers("/api/v1/quantities/**").permitAll()

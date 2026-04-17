@@ -70,3 +70,9 @@ resilience4j:
                 permittedNumberOfCallsInHalfOpenState: 3
 auth-service:
     url: http://api-gateway:8080
+springdoc:
+      api-docs:
+        path: /v3/api-docs
+        swagger-ui:
+      path: /swagger-ui.html
+      operations-sorter: alpha

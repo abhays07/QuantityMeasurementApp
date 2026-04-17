@@ -22,6 +22,7 @@ public class SecurityConfig {
             .cors(cors -> cors.disable()) // Handled by CorsWebFilter Bean
             .authorizeExchange(exchange -> exchange
                 .pathMatchers("/auth/**", "/oauth2/**", "/login/**").permitAll()
+                .pathMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
                 .pathMatchers("/api/v1/quantities/**", "/actuator/**").permitAll()
                 .anyExchange().permitAll() 
             )
