@@ -28,12 +28,12 @@ spring:
         - id: auth-service-route
           uri: lb://AUTH-SERVICE
           predicates:
-            - Path=/auth/**, /oauth2/**, /login/**
+            - Path=/auth/**, /oauth2/**, /login/**, /v3/api-docs/**
         
         - id: qma-service-route
           uri: lb://QMA-SERVICE
           predicates:
-            - Path=/api/v1/quantities/**
+            - Path=/api/v1/quantities/**, /v3/api-docs/**
 
 eureka:
   client:
