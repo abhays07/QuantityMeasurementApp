@@ -3,6 +3,8 @@ services:
     image: abhays2004/qma-eureka:latest
     ports:
       - "8761:8761"
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms128m
     deploy:
       resources:
         limits:
@@ -14,6 +16,10 @@ services:
       - "8085:8080"
     depends_on:
       - eureka-server
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    # FIXED: Ensures the gateway waits for Eureka to be fully ready before starting
+    entrypoint: ["sh", "-c", "sleep 20 && java $$JAVA_OPTS -jar app.jar"]
     deploy:
       resources:
         limits:
@@ -24,10 +30,10 @@ services:
     ports:
       - "8082:8082"
     environment:
+      - JAVA_OPTS=-Xmx768m -Xms256m
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/auth_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
-      # Values are injected by the Jenkins 'environment' block
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - JWT_SECRETKEY=${JWT_SECRETKEY}
@@ -43,10 +49,10 @@ services:
     ports:
       - "8081:8081"
     environment:
+      - JAVA_OPTS=-Xmx768m -Xms256m
       - SPRING_DATASOURCE_URL=jdbc:mysql://qma-database.c9qcc20w0lz6.ap-south-1.rds.amazonaws.com:3306/qma_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=05052005
-      # Value is injected by the Jenkins 'environment' block
       - JWT_SECRETKEY=${JWT_SECRETKEY}
     depends_on:
       - eureka-server

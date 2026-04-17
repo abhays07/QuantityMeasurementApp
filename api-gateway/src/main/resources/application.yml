@@ -24,14 +24,11 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
-      # FIXED: Corrected indentation for routes
       routes:
         - id: auth-service-route
           uri: lb://AUTH-SERVICE
           predicates:
-            - Path=/auth/**, /oauth2/**, /login/oauth2/code/**
-          filters:
-            - TokenRelay= # Ensures JWT is passed if using Spring Security
+            - Path=/auth/**, /oauth2/**, /login/**
         
         - id: qma-service-route
           uri: lb://QMA-SERVICE
@@ -40,7 +37,11 @@ spring:
 
 eureka:
   client:
-    registry-fetch-interval-seconds: 2
+    # FIXED: Added these to prevent the Gateway from crashing during startup
+    fetch-registry: true
+    register-with-eureka: true
+    initial-instance-info-replication-interval-seconds: 15
+    registry-fetch-interval-seconds: 5
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
 
